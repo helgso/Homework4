@@ -2,7 +2,10 @@
 .idea/
 
 # Data
-Data/
+Data/sample_submission.csv
+Data/test_images.npy
+Data/train_images.npy
+Data/train_labels.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
