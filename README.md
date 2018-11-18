@@ -8,13 +8,16 @@ Before you begin, you should familiarize yourself with the dataset.
 
 ## Project steps:
 
-1.
-- Data pre-processing: get rid of the noise 
-- Think of the baseline linear learner and any other ML method that we will use.
-
-2. Implement the classifier naively without any optimisation/strategy
+1. Data pre-processing: get rid of the noise 
+2. Implement the classifiers naively without any optimisation/strategy
+- baseline linear learner: SVM or logistic regression
+- other method: Random forest and convnet
 3. Watch the results 
-4. Optimization: Make decisions about training/validation split, distribution choice for naive bayes, regularization strategy, any optimization tricks, setting hyper-parameters, etc. 
+4. Optimization: 
+Try to optimize Random forest and Convnet:
+Make decisions about training/validation split, distribution choice for naive bayes, regularization strategy, any optimization tricks, setting hyper-parameters, etc. 
 5. Watch the results 
 6. And so on..
+7. Take the one that gives the best results between Random forest and Convnet
+8. Compare with the baseline linear learner
 
