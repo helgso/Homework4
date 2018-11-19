@@ -5,7 +5,7 @@ from scripts import cnn_utils
 
 def main():
     learning_rate = 1e-3
-    num_categories = 31
+    num_categories = 30
     epochs = 3
     img_size = 100
     cnn_engine = 4
@@ -21,14 +21,14 @@ def main():
         # Todo: Write prediction code
     else:
         # Loading in the training dataset
-        train_x, train_y = cnn_utils.load_training_dataset()
+        train_x, train_y = cnn_utils.load_training_dataset(img_size, preprocessed=True)
         # test_dataset = utils.load_test_data()
 
         # Splitting the training dataset into a training and a validation set
         valid_x, valid_y = train_x[-500:], train_y[-500:]
         train_x, train_y = train_x[:-500], train_y[:-500]
 
-        # Traing the model
+        # Training the model
         model.fit(
             {'input': train_x}, {'target': train_y},
             n_epoch=epochs,

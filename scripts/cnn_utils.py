@@ -16,9 +16,12 @@ LABELS = []
 
 
 def load_training_dataset(
+    img_size,
     preprocessed=True
 ):
     """
+    :param img_size: The train_x pictures will be img_size x img_size pixels
+    :param preprocessed: True if we should use preprocessed data (noise removed), False if raw data
     :return: train_x, train_y which are the input examples train_x and their labels train_y to use for training
     """
     global LABEL_TO_INTEGER, LABELS
@@ -28,20 +31,27 @@ def load_training_dataset(
     num_data = labels.shape[0]
 
     if preprocessed:
-        images = pickle.load(open("../data/train_set.p", "rb"))
+        raw_data = np.array(pickle.load(open("../data/train_set.p", "rb")))
+        images = np.array([
+            # Adding zeros where there are missing pixels to fill each picture up to 100x100 pixels
+            np.pad(image, ((0, img_size - image.shape[0]), (0, img_size - image.shape[1])), 'constant')
+            for category in raw_data for image in category
+        ])
+        # Needed until the preprocessed data matches the labels count (we're missing one class)
+        num_data = images.shape[0]
     else:
         images = np.load('../data/train_images.npy', encoding='latin1')
 
     # Set the global variables
     LABELS = list(set([labels[i][1] for i in range(0, num_data)]))
+    # Needed until the preprocessed data matches the labels count (we're missing one class)
+    if preprocessed:
+        LABELS.remove(b'squig')
     for i in range(0, len(LABELS)):
         LABEL_TO_INTEGER[LABELS[i]] = i
 
     data = [
-        # Two required conversions for tflearn:
-        # 1. Converting each image from being (10000, 1) to (100, 100, 1)
-        # 2. Converting each string label to a onehot encoding where the index of 1 is the category's index
-        ((images[i][1]).reshape(100, 100, 1), label_to_onehot(labels[i][1])) for i in range(0, num_data)
+        ((images[i]).reshape(img_size, img_size, 1), label_to_onehot(labels[i][1])) for i in range(0, num_data)
     ]
     random.shuffle(data)
 
@@ -147,26 +157,12 @@ def create_convnet(
                              name='target')
 
     if cnn_engine == 4:
-        convnet = conv_2d(convnet, 32, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 64, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 32, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 64, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 32, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 64, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 32, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 64, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 32, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
-        convnet = conv_2d(convnet, 64, 2, activation='relu')
-        convnet = max_pool_2d(convnet, 2)
+        for i in range(0, 3):
+            convnet = conv_2d(convnet, 32, 2, activation='relu')
+            convnet = max_pool_2d(convnet, 2)
+            convnet = conv_2d(convnet, 64, 2, activation='relu')
+            convnet = max_pool_2d(convnet, 2)
+
         convnet = fully_connected(convnet, 1024, activation='relu')
         convnet = dropout(convnet, 0.8)
         convnet = fully_connected(convnet, num_categories, activation='softmax')
