@@ -31,12 +31,19 @@ def load_training_dataset(
     num_data = labels.shape[0]
 
     if preprocessed:
-        raw_data = np.array(pickle.load(open("../data/train_set.p", "rb")))
+        raw_images = np.array(pickle.load(open("../data/train_set.p", "rb")))
+        raw_labels = np.array(pickle.load(open("../data/cat_examples.p", "rb")))
+
         images = np.array([
             # Adding zeros where there are missing pixels to fill each picture up to 100x100 pixels
             np.pad(image, ((0, img_size - image.shape[0]), (0, img_size - image.shape[1])), 'constant')
-            for category in raw_data for image in category
+            for category in raw_images for image in category
         ])
+        labels = np.array([
+            # -1 until the preprocessed data matches the labels count (we're missing one class)
+            [(0, raw_labels[i])] * len(raw_images[i]) for i in range(0, len(raw_labels)-1)
+        ])
+        labels = np.array([label for category in labels for label in category])
         # Needed until the preprocessed data matches the labels count (we're missing one class)
         num_data = images.shape[0]
     else:
@@ -44,9 +51,6 @@ def load_training_dataset(
 
     # Set the global variables
     LABELS = list(set([labels[i][1] for i in range(0, num_data)]))
-    # Needed until the preprocessed data matches the labels count (we're missing one class)
-    if preprocessed:
-        LABELS.remove(b'squig')
     for i in range(0, len(LABELS)):
         LABEL_TO_INTEGER[LABELS[i]] = i
 
