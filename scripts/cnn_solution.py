@@ -6,7 +6,7 @@ from scripts import cnn_utils
 def main():
     learning_rate = 1e-3
     num_categories = 30
-    epochs = 100
+    epochs = 300
     img_size = 100
     cnn_engine = 4
     models_folder = 'cnn-saved-models'
@@ -20,10 +20,11 @@ def main():
         print('model loaded from a previous training. Do you want to continue training or predict? (train/predict)')
         value = input()
 
-        if value.lower() == 'train':
-            train(model, model_name, models_folder, epochs, img_size)
-        else:
+        if value.lower() == 'predict':
             predict(model)
+            return
+
+    train(model, model_name, models_folder, epochs, img_size)
 
 
 def train(
