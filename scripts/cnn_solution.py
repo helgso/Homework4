@@ -2,12 +2,13 @@ import os
 
 from scripts import cnn_utils
 import numpy as np
+import tensorflow as tf
 
 
 def main():
     learning_rate = 1e-3
     num_categories = 30
-    epochs = 30
+    epochs = 50
     img_size = 100
     cnn_engine = 4
     models_folder = '../results/cnn/saved-models'
@@ -80,12 +81,18 @@ def predict(
     """
     test_x = cnn_utils.load_preprocessed_testing_dataset(img_size, num_categories)
 
-    results = model.predict(test_x)
     print("Predicting classes ...")
-    predictions = [[i, cnn_utils.int_to_label(np.argmax(results[i]))] for i in range(0, len(results))]
+
+    batch_size = 500
+    results = []
+    for i in range(0, len(test_x), batch_size):
+        raw_predictions = model.predict(test_x[i:i+batch_size])
+        predictions = [[j, cnn_utils.int_to_label(np.argmax(raw_predictions[j%batch_size]))] for j in range(len(results), len(results)+batch_size)]
+        results += predictions
+        print(i)
 
     print("Done. Saving predictions at {}".format(predictions_file_path))
-    np.savetxt(predictions_file_path, [['Id', 'Category']] + predictions, delimiter=',', fmt='%s')
+    np.savetxt(predictions_file_path, [['Id', 'Category']] + results, delimiter=',', fmt='%s')
 
 
 if __name__ == '__main__':
