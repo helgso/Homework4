@@ -15,47 +15,35 @@ LABEL_TO_INTEGER = {}
 LABELS = []
 
 
-def load_training_dataset(
+def load_preprocessed_training_dataset(
     img_size,
-    preprocessed=True
+    num_categories
 ):
     """
-    :param img_size: The train_x pictures will be img_size x img_size pixels
-    :param preprocessed: True if we should use preprocessed data (noise removed), False if raw data
+    Load the preprocessed training set (noise removed)
+
+    :param img_size: The train_x pictures will be img_size * img_size pixels
+    :param num_categories: How many categories we want to predict
     :return: train_x, train_y which are the input examples train_x and their labels train_y to use for training
     """
-    global LABEL_TO_INTEGER, LABELS
+    raw_images = np.array(pickle.load(open("../data/train_set_{}.p".format(num_categories), "rb")))
+    raw_labels = np.array(pickle.load(open("../data/cat_examples_full_names.p", "rb")))
 
-    labels = np.genfromtxt('../data/train_labels.csv', names=True, delimiter=',',
-                           dtype=[('Id', 'i8'), ('Category', 'S5')])
-    num_data = labels.shape[0]
+    images = np.array([
+        # Adding zeros where there are missing pixels to fill each picture up to 100x100 pixels
+        pad_image_up_to(image, img_size)
+        for category in raw_images for image in category
+    ])
+    labels = np.array([
+        [raw_labels[i]] * len(raw_images[i]) for i in range(0, num_categories)
+    ])
+    labels = np.array([label for category in labels for label in category])
 
-    if preprocessed:
-        raw_images = np.array(pickle.load(open("../data/train_set.p", "rb")))
-        raw_labels = np.array(pickle.load(open("../data/cat_examples.p", "rb")))
-
-        images = np.array([
-            # Adding zeros where there are missing pixels to fill each picture up to 100x100 pixels
-            np.pad(image, ((0, img_size - image.shape[0]), (0, img_size - image.shape[1])), 'constant')
-            for category in raw_images for image in category
-        ])
-        labels = np.array([
-            # -1 until the preprocessed data matches the labels count (we're missing one class)
-            [(0, raw_labels[i])] * len(raw_images[i]) for i in range(0, len(raw_labels)-1)
-        ])
-        labels = np.array([label for category in labels for label in category])
-        # Needed until the preprocessed data matches the labels count (we're missing one class)
-        num_data = images.shape[0]
-    else:
-        images = np.load('../data/train_images.npy', encoding='latin1')
-
-    # Set the global variables
-    LABELS = list(set([labels[i][1] for i in range(0, num_data)]))
-    for i in range(0, len(LABELS)):
-        LABEL_TO_INTEGER[LABELS[i]] = i
+    num_data = images.shape[0]
+    set_labels_global_variables(raw_labels, num_categories)
 
     data = [
-        ((images[i]).reshape(img_size, img_size, 1), label_to_onehot(labels[i][1])) for i in range(0, num_data)
+        ((images[i]).reshape(img_size, img_size, 1), label_to_onehot(labels[i])) for i in range(0, num_data)
     ]
     random.shuffle(data)
 
@@ -63,27 +51,70 @@ def load_training_dataset(
     return np.array(inputs), np.array(outputs)
 
 
-def label_to_onehot(label_string):
+def set_labels_global_variables(
+    raw_labels,
+    num_categories
+):
+    global LABELS, LABEL_TO_INTEGER
+
+    # Set the global variables
+    LABELS = raw_labels[:num_categories]
+    for i in range(0, len(LABELS)):
+        LABEL_TO_INTEGER[LABELS[i]] = i
+
+
+def label_to_onehot(
+    label_string
+):
     result = np.zeros(len(LABELS))
     result[LABEL_TO_INTEGER[label_string]] = 1
     return result
 
 
-def int_to_label(label_integer):
+def int_to_label(
+    label_integer
+):
     return LABELS[label_integer]
 
 
-# def load_train_labels():
-#     raw_data = np.genfromtxt('../data/train_labels.csv', names=True, delimiter=',',
-#                              dtype=[('Id', 'i8'), ('Category', 'S5')])
-#     return raw_data
+def load_preprocessed_testing_dataset(
+    img_size,
+    num_categories
+):
+    """
+    Load the preprocessed test set (noise removed)
+
+    :param img_size: The test_x pictures will be img_size * img_size pixels
+    :param num_categories: How many categories we want to predict
+    :return: test_x which are the input examples whose classification we use to submit to Kaggle
+    """
+    raw_images = np.array(pickle.load(open("../data/test_set_v1.p", "rb")))
+
+    images = np.array([
+        # Adding zeros where there are missing pixels to fill each picture up to 100x100 pixels
+        # and reshaping for tflearn
+        (pad_image_up_to(image, img_size)).reshape(img_size, img_size, 1)
+        for image in raw_images
+    ])
+
+    raw_labels = np.array(pickle.load(open("../data/cat_examples_full_names.p", "rb")))
+    set_labels_global_variables(raw_labels, num_categories)
+
+    return images
 
 
-def load_test_data():
-    raw_data = np.load('../data/test_images.npy', encoding='latin1')
-    #return [(x[1]).reshape(100, 100) for x in raw_data]
-    random.shuffle(raw_data)
-    return raw_data
+def pad_image_up_to(
+    image,
+    img_size
+):
+    """
+    Preserve the scale of the image image but pad it with zeros up to the dimensions img_size * img_size
+
+    :param image: The image to pad
+    :param img_size: The size of the image to pad up to
+    :return: The padded image
+    """
+    return np.pad(image, ((0, img_size - image.shape[0]), (0, img_size - image.shape[1])), 'constant')
 
 
 def create_convnet(
