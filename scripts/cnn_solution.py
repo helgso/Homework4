@@ -7,7 +7,7 @@ import numpy as np
 def main():
     learning_rate = 1e-3
     num_categories = 30
-    epochs = 1
+    epochs = 30
     img_size = 100
     cnn_engine = 4
     models_folder = '../results/cnn/saved-models'
@@ -50,9 +50,6 @@ def train(
     # Splitting the training dataset into a training and a validation set
     valid_x, valid_y = train_x[-500:], train_y[-500:]
     train_x, train_y = train_x[:-500], train_y[:-500]
-
-    train_x = train_x[:500]
-    train_y = train_y[:500]
 
     # Training the model
     model.fit(
