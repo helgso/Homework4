@@ -23,7 +23,7 @@ def clean_pic(image, frame_offset, nb_try):
     framed_im = CenterImage(image, image.shape[0]+2*frame_offset)
 
 
-    image_bin = framed_im > 150
+    image_bin = framed_im > 150 
 
 
     image_bin = image_bin.astype(int)
