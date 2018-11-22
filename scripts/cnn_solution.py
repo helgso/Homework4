@@ -2,7 +2,6 @@ import os
 
 from scripts import cnn_utils
 import numpy as np
-import tensorflow as tf
 
 
 def main():
@@ -11,8 +10,10 @@ def main():
     epochs = 50
     img_size = 100
     cnn_engine = 4
+    noisy = False
+    validation_set_size = 0.05
     models_folder = '../results/cnn/saved-models'
-    model_name = 'cnn-{}-{}-{}'.format(num_categories, learning_rate, cnn_engine)
+    model_name = 'cnn-{}-{}-{}-{}-{}'.format(num_categories, learning_rate, validation_set_size, noisy, cnn_engine)
     model_file_path = '{}/{}'.format(models_folder, model_name)
     predictions_folder = '../results/cnn'
     predictions_file_path = '{}/{}.csv'.format(predictions_folder, model_name)
@@ -28,7 +29,7 @@ def main():
             predict(model, predictions_file_path, img_size, num_categories)
             return
 
-    train(model, model_file_path, epochs, img_size, num_categories)
+    train(model, model_file_path, epochs, img_size, num_categories, validation_set_size, noisy)
 
 
 def train(
@@ -36,7 +37,9 @@ def train(
     model_file_path,
     epochs,
     img_size,
-    num_categories
+    num_categories,
+    validation_set_size,
+    noisy
 ):
     """
     Given a model, train it and save it as the file model_file_path
@@ -45,12 +48,16 @@ def train(
     :param model_file_path: The file path where we will save our model after training
     :param img_size: The size we want of the images of our training set
     :param num_categories: How many categories we want to predict
+    :param validation_set_size: Percentage of training set we will use for validation during training
+    :param noisy: Whether we use the noisy training set for training or not
     """
-    train_x, train_y = cnn_utils.load_preprocessed_training_dataset(img_size, num_categories)
+    train_x, train_y = cnn_utils.load_training_dataset(img_size, num_categories, noisy)
+
+    valid_length = int(len(train_x)*validation_set_size)
 
     # Splitting the training dataset into a training and a validation set
-    valid_x, valid_y = train_x[-500:], train_y[-500:]
-    train_x, train_y = train_x[:-500], train_y[:-500]
+    valid_x, valid_y = train_x[-valid_length:], train_y[-valid_length:]
+    train_x, train_y = train_x[:-valid_length], train_y[:-valid_length]
 
     # Training the model
     model.fit(
@@ -79,10 +86,12 @@ def predict(
     :param img_size: The size we want of the images of our test set
     :param num_categories: How many categories we want to predict
     """
-    test_x = cnn_utils.load_preprocessed_testing_dataset(img_size, num_categories)
+    test_x = cnn_utils.load_testing_dataset(img_size, num_categories)
 
     print("Predicting classes ...")
 
+    # We do predictions in batches to lower the computational complexity (I got an out of memory exception when
+    # trying to predict all 10000 testing examples at once (Helgi)
     batch_size = 500
     results = []
     for i in range(0, len(test_x), batch_size):

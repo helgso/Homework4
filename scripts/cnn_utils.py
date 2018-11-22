@@ -15,15 +15,17 @@ LABEL_TO_INTEGER = {}
 LABELS = []
 
 
-def load_preprocessed_training_dataset(
+def load_training_dataset(
     img_size,
-    num_categories
+    num_categories,
+    noisy=False
 ):
     """
     Load the preprocessed training set (noise removed)
 
     :param img_size: The train_x pictures will be img_size * img_size pixels
     :param num_categories: How many categories we want to predict
+    :param noisy: True if we should load the noisy training set, False if we want to load the denoised training set
     :return: train_x, train_y which are the input examples train_x and their labels train_y to use for training
     """
     raw_images = np.array(pickle.load(open("../data/train_set_{}.p".format(num_categories), "rb")))
@@ -77,15 +79,17 @@ def int_to_label(
     return LABELS[label_integer]
 
 
-def load_preprocessed_testing_dataset(
+def load_testing_dataset(
     img_size,
-    num_categories
+    num_categories,
+    noisy=False
 ):
     """
     Load the preprocessed test set (noise removed)
 
     :param img_size: The test_x pictures will be img_size * img_size pixels
     :param num_categories: How many categories we want to predict
+    :param noisy: True if we should load the noisy testing set, False if we want to load the denoised testing set
     :return: test_x which are the input examples whose classification we use to submit to Kaggle
     """
     raw_images = np.array(pickle.load(open("../data/test_set_v1.p", "rb")))
