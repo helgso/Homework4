@@ -191,6 +191,8 @@ def create_convnet(
                              loss='categorical_crossentropy',
                              name='target')
 
+
+
     if cnn_engine == 4:
         for i in range(0, 3):
             convnet = conv_2d(convnet, 32, 2, activation='relu')
@@ -204,5 +206,23 @@ def create_convnet(
         convnet = regression(convnet, optimizer='adam', learning_rate=learning_rate,
                              loss='categorical_crossentropy',
                              name='target')
+
+    if cnn_engine == 5:
+        convnet = conv_2d(convnet, 32, 3, activation='relu', regularizer="L2")
+        convnet = max_pool_2d(convnet, 2)
+        convnet = local_response_normalization(convnet)
+        convnet = conv_2d(convnet, 64, 3, activation='relu', regularizer="L2")
+        convnet = conv_2d(convnet, 64, 3, activation='relu')
+        convnet = max_pool_2d(convnet, 2)
+        convnet = local_response_normalization(convnet)
+        convnet = fully_connected(convnet, 128, activation='tanh')
+        convnet = dropout(convnet, 0.5)
+        convnet = fully_connected(convnet, 512, activation='tanh')
+        convnet = dropout(convnet, 0.5)
+        convnet = fully_connected(convnet, 31, activation='softmax')
+        convnet = regression(convnet, optimizer='adam', learning_rate=learning_rate,
+                             loss='categorical_crossentropy', name='target')
+
+
 
     return tflearn.DNN(convnet, tensorboard_dir='log')

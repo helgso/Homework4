@@ -6,7 +6,7 @@ import tensorflow as tf
 
 
 def main():
-    learning_rate = 1e-3
+    learning_rate = 3e-5
     num_categories = 30
     epochs = 50
     img_size = 100
@@ -56,7 +56,7 @@ def train(
     model.fit(
         {'input': train_x}, {'target': train_y},
         n_epoch=epochs,
-        validation_set=({'input': valid_x}, {'target': valid_y}),
+        validation_set=({'input': valid_x}, {'target': valid_y}), batch_size=32,
         snapshot_step=500, show_metric=True, run_id=os.path.basename(model_file_path)
     )
 
