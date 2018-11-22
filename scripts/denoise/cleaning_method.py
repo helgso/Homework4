@@ -14,7 +14,7 @@ def CenterImage(image, frame_size):
 
     frame[int(x): int(x + image.shape[0]), int(y): int(y + image.shape[1])] = image
 
-    return frame
+    return frame 
 
 
 #Denoise the picture
