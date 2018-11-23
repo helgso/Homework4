@@ -32,7 +32,7 @@ X= np.zeros([n,n2])
 for i in range(n):
     X[i] = X_[i].tolist()
 
-#print(X)
+print(X)
 
 #Try different max_depth (tree max depth) to improve results
 clf = RandomForestClassifier(n_estimators=100, max_depth=10,
