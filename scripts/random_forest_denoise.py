@@ -22,24 +22,27 @@ images_test = np.array(pickle.load(open(parent_dir+"/data/cross-validation/D_noi
 #Load labels of the test set to compare with the prediction
 test_labels = np.array(pickle.load(open(parent_dir+"/data/cross-validation/Validation_test_labels_categories.p", "rb")))
 
-images_train = images_train.reshape(8000,10500)
-images_test = images_test.reshape(2000,10500)
+#We want 100x100 pictures instead of 100x105
+images_train = images_train[:,:,3:-2].reshape(8000,10000)
+images_test = images_test[:,:,3:-2].reshape(2000,10000)
 
+#clf = RandomForestClassifier(random_state=42, criterion='entropy', max_features='auto', n_estimators=500, max_depth=8)
 
 #GridSearch
 rfc = RandomForestClassifier(random_state=42)
-
+#best params:  {'criterion': 'entropy', 'max_depth': 8, 'max_features': 'auto', 'n_estimators': 500}
 param_grid = {
-    'n_estimators': [200, 500],
-    'max_features': ['auto', 'sqrt', 'log2'],
-    'max_depth' : [4,5,6,7,8],
-    'criterion' :['gini', 'entropy']
+    'bootstrap': [True],
+    'max_depth': [80, 90, 100, 110],
+    'max_features': [2, 3, 'auto'],
+    'min_samples_leaf': [3, 4, 5],
+    'min_samples_split': [8, 10, 12],
+    'n_estimators': [100, 200, 300, 1000]
 }
 
 clf = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5)
 clf.fit(images_train, train_labels)
 
-clf.best_params_
 print("best params: ", clf.best_params_)
 
 acc = clf.score(images_train, train_labels)

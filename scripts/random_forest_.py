@@ -24,8 +24,7 @@ images_train = images_train.reshape(8000,10000)
 images_test = images_test.reshape(2000,10000)
 
 #Try different max_depth (tree max depth) to improve results
-clf = RandomForestClassifier(n_estimators=20, max_depth=50,max_features=1000,
-                             random_state=0)
+clf = RandomForestClassifier(random_state=42, criterion='entropy', max_features='auto', n_estimators=500, max_depth=8)
 clf.fit(images_train, train_labels)
 acc = clf.score(images_train, train_labels)
 print("Accuracy on the training set: %s"%acc)
