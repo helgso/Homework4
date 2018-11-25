@@ -8,6 +8,7 @@ import pickle
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import AdaBoostClassifier
+from math import *
 
 parent_dir = dirname(dirname(abspath(__file__)))
 
@@ -29,8 +30,12 @@ for i in range(n):
     x_size = images_train[i].shape
     nb_row = size-x_size[0]
     nb_columns = size-x_size[1]
-    x = np.pad(images_train[i], ((0,nb_row),(0,nb_columns)), mode='constant', constant_values=0)
-    X[i] = np.pad(images_train[i], ((0,nb_row),(0,nb_columns)), mode='constant', constant_values=0)
+    zero_up = ceil(nb_row/2)
+    zero_down = floor(nb_row/2)
+    zero_left = ceil(nb_columns/2)
+    zero_right = floor(nb_columns/2)
+    x = np.pad(images_train[i], ((zero_up,zero_down),(zero_left,zero_right)), mode='constant', constant_values=0)
+    X[i] = x
 
 #print(X)
 
@@ -53,7 +58,7 @@ train_labels = y[0:8000]
 validation_labels = y[8000:]
 
 
-clf = RandomForestClassifier(random_state=0, n_estimators=500, max_depth=15)
+clf = RandomForestClassifier(random_state=1, n_estimators=500, max_depth=30)
 #bclf = AdaBoostClassifier(base_estimator=clf,n_estimators=clf.n_estimators)
 
 #clf = GridSearchCV(estimator=rfc, param_grid=param_grid, cv= 5)
